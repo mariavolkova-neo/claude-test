@@ -5,12 +5,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
-  Home,
   ClipboardList,
   BookOpen,
   Building2,
   Settings,
-  FileText,
   HelpCircle,
   LogOut,
   Globe,
@@ -28,7 +26,6 @@ interface NavItem {
 
 const topNav: NavItem[] = [
   { icon: <LayoutDashboard size={20} />, label: "Dashboard", href: "/dashboard" },
-  { icon: <Home size={20} />, label: "Home", href: "/admin" },
   { icon: <ClipboardList size={20} />, label: "Tasks", href: "/tasks" },
   { icon: <BookOpen size={20} />, label: "Knowledge", href: "/knowledge" },
   { icon: <Building2 size={20} />, label: "Admin", href: "/admin" },
@@ -36,7 +33,6 @@ const topNav: NavItem[] = [
 ];
 
 const bottomNav: NavItem[] = [
-  { icon: <FileText size={20} />, label: "Documents", href: "/knowledge" },
   { icon: <HelpCircle size={20} />, label: "Help", href: "/help" },
 ];
 
