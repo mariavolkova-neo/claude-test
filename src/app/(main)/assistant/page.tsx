@@ -131,7 +131,7 @@ export default function AssistantPage() {
   const [showCommands, setShowCommands] = useState(false);
 
   return (
-    <div className="flex h-[calc(100vh-60px)]">
+    <div className="flex h-screen">
       {/* Chat Sidebar */}
       <aside className="w-72 shrink-0 border-r flex flex-col">
         <div className="p-4 border-b">

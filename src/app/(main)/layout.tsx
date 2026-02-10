@@ -3,7 +3,6 @@
 import React from "react";
 import { usePathname } from "next/navigation";
 import { Sidebar } from "@/components/layout/sidebar";
-import { Topbar } from "@/components/layout/topbar";
 
 export default function MainLayout({
   children,
@@ -11,22 +10,18 @@ export default function MainLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const isKnowledgeCenter = pathname.startsWith("/knowledge");
-
-  if (isKnowledgeCenter) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Topbar />
-        <main>{children}</main>
-      </div>
-    );
-  }
+  const isFullWidth =
+    pathname.startsWith("/knowledge") || pathname.startsWith("/assistant");
 
   return (
     <div className="min-h-screen bg-background">
       <Sidebar />
       <main className="ml-[60px]">
-        <div className="mx-auto max-w-6xl p-6">{children}</div>
+        {isFullWidth ? (
+          children
+        ) : (
+          <div className="mx-auto max-w-6xl p-6">{children}</div>
+        )}
       </main>
     </div>
   );
