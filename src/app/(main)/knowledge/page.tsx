@@ -13,7 +13,10 @@ import {
   List,
   FolderOpen,
   Home,
+  PanelLeftClose,
+  PanelLeft,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { FolderTree } from "@/components/knowledge/folder-tree";
 import type { FolderNode } from "@/components/knowledge/folder-tree";
@@ -244,6 +247,7 @@ function getBreadcrumbPath(
 
 export default function KnowledgeCenterPage() {
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
+  const [folderSidebarOpen, setFolderSidebarOpen] = useState(false);
 
   const folderMap = useMemo(() => buildFolderMap(folderTree), []);
 
@@ -340,18 +344,55 @@ export default function KnowledgeCenterPage() {
       </div>
 
       {/* Main Content */}
-      <div className="mx-auto max-w-7xl flex gap-0">
-        {/* Folder Sidebar */}
-        <aside className="w-56 shrink-0 border-r p-4">
+      <div className="mx-auto max-w-7xl flex gap-0 relative">
+        {/* Mobile folder sidebar backdrop */}
+        {folderSidebarOpen && (
+          <div
+            className="fixed inset-0 z-20 bg-black/50 md:hidden"
+            onClick={() => setFolderSidebarOpen(false)}
+          />
+        )}
+
+        {/* Folder Sidebar — always visible on md+, drawer on mobile */}
+        <aside
+          className={cn(
+            "fixed md:relative z-30 md:z-auto top-0 left-0 h-full md:h-auto w-64 md:w-56 shrink-0 border-r bg-card md:bg-transparent p-4 transition-transform duration-300 md:translate-x-0",
+            folderSidebarOpen ? "translate-x-0 shadow-xl" : "-translate-x-full"
+          )}
+        >
+          <div className="flex items-center justify-between mb-3 md:hidden">
+            <p className="text-sm font-semibold">Folders</p>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              onClick={() => setFolderSidebarOpen(false)}
+            >
+              <PanelLeftClose size={16} />
+            </Button>
+          </div>
           <FolderTree
             folders={folderTree}
             selectedId={selectedFolderId}
-            onSelect={setSelectedFolderId}
+            onSelect={(id) => {
+              setSelectedFolderId(id);
+              setFolderSidebarOpen(false);
+            }}
           />
         </aside>
 
         {/* Content Area */}
-        <div className="flex-1 p-6">
+        <div className="flex-1 p-4 md:p-6">
+          {/* Mobile folder toggle */}
+          <Button
+            variant="outline"
+            size="sm"
+            className="mb-4 md:hidden"
+            onClick={() => setFolderSidebarOpen(true)}
+          >
+            <PanelLeft size={14} />
+            Folders
+          </Button>
           {/* Folders Section */}
           {subfolders.length > 0 && (
             <section>

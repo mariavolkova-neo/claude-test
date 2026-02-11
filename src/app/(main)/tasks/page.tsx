@@ -200,35 +200,37 @@ function KanbanCard({ task }: { task: Task }) {
 
 function KanbanBoard({ tasks }: { tasks: Task[] }) {
   return (
-    <div className="grid grid-cols-4 gap-4">
-      {statusColumns.map((col) => {
-        const colTasks = tasks.filter((t) => t.status === col.key);
-        return (
-          <div key={col.key} className="flex flex-col">
-            {/* Column header */}
-            <div className="flex items-center gap-2 mb-3 px-1">
-              <span className={col.color}>{col.icon}</span>
-              <span className="text-sm font-semibold">{col.label}</span>
-              <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-muted px-1.5 text-[11px] font-medium text-muted-foreground">
-                {colTasks.length}
-              </span>
-            </div>
+    <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
+      <div className="flex gap-4 md:grid md:grid-cols-4 min-w-[800px] md:min-w-0">
+        {statusColumns.map((col) => {
+          const colTasks = tasks.filter((t) => t.status === col.key);
+          return (
+            <div key={col.key} className="flex flex-col min-w-[220px] md:min-w-0 flex-1">
+              {/* Column header */}
+              <div className="flex items-center gap-2 mb-3 px-1">
+                <span className={col.color}>{col.icon}</span>
+                <span className="text-sm font-semibold">{col.label}</span>
+                <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-muted px-1.5 text-[11px] font-medium text-muted-foreground">
+                  {colTasks.length}
+                </span>
+              </div>
 
-            {/* Cards */}
-            <div className={cn("flex-1 rounded-xl p-2 space-y-3 min-h-[200px]", col.bg)}>
-              {colTasks.length === 0 ? (
-                <p className="text-xs text-muted-foreground text-center py-8">
-                  No tasks
-                </p>
-              ) : (
-                colTasks.map((task) => (
-                  <KanbanCard key={task.id} task={task} />
-                ))
-              )}
+              {/* Cards */}
+              <div className={cn("flex-1 rounded-xl p-2 space-y-3 min-h-[200px]", col.bg)}>
+                {colTasks.length === 0 ? (
+                  <p className="text-xs text-muted-foreground text-center py-8">
+                    No tasks
+                  </p>
+                ) : (
+                  colTasks.map((task) => (
+                    <KanbanCard key={task.id} task={task} />
+                  ))
+                )}
+              </div>
             </div>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -250,14 +252,14 @@ export default function TasksPage() {
       />
 
       <Tabs defaultValue="my-tasks" variant="pills" className="mt-6">
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
           <TabsList>
             <TabsTrigger value="my-tasks">My Tasks</TabsTrigger>
             <TabsTrigger value="assigned-by-me">Assigned by Me</TabsTrigger>
             <TabsTrigger value="all-tasks">All Tasks</TabsTrigger>
           </TabsList>
           <div className="flex items-center gap-2">
-            <div className="relative max-w-[240px]">
+            <div className="relative flex-1 sm:max-w-[240px]">
               <Search
                 size={16}
                 className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"

@@ -6,6 +6,7 @@ import {
   Plus,
   Sparkles,
   PanelRight,
+  PanelLeft,
   Maximize2,
   MessageSquare,
   FolderOpen,
@@ -13,6 +14,7 @@ import {
   MoreHorizontal,
   Bot,
   User,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -129,16 +131,40 @@ export default function AssistantPage() {
   const [selectedChat, setSelectedChat] = useState<string>("1");
   const [input, setInput] = useState("");
   const [showCommands, setShowCommands] = useState(false);
+  const [chatSidebarOpen, setChatSidebarOpen] = useState(false);
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen relative">
+      {/* Mobile chat sidebar backdrop */}
+      {chatSidebarOpen && (
+        <div
+          className="fixed inset-0 z-20 bg-black/50 md:hidden"
+          onClick={() => setChatSidebarOpen(false)}
+        />
+      )}
+
       {/* Chat Sidebar */}
-      <aside className="w-72 shrink-0 border-r flex flex-col">
+      <aside
+        className={cn(
+          "fixed md:relative z-30 md:z-auto top-0 left-0 h-full w-72 shrink-0 border-r bg-card md:bg-transparent flex flex-col transition-transform duration-300 md:translate-x-0",
+          chatSidebarOpen ? "translate-x-0 shadow-xl" : "-translate-x-full"
+        )}
+      >
         <div className="p-4 border-b">
-          <Button className="w-full" size="sm">
-            <Plus size={16} />
-            New Chat
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button className="flex-1" size="sm">
+              <Plus size={16} />
+              New Chat
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 shrink-0 md:hidden"
+              onClick={() => setChatSidebarOpen(false)}
+            >
+              <X size={16} />
+            </Button>
+          </div>
         </div>
 
         {/* Projects */}
@@ -166,7 +192,7 @@ export default function AssistantPage() {
             {mockChats.map((chat) => (
               <button
                 key={chat.id}
-                onClick={() => setSelectedChat(chat.id)}
+                onClick={() => { setSelectedChat(chat.id); setChatSidebarOpen(false); }}
                 className={cn(
                   "flex w-full flex-col rounded-lg px-3 py-2 text-left transition-colors cursor-pointer",
                   selectedChat === chat.id
@@ -205,8 +231,16 @@ export default function AssistantPage() {
       {/* Chat Area */}
       <div className="flex-1 flex flex-col">
         {/* Chat Header */}
-        <div className="flex items-center justify-between border-b px-6 py-3">
+        <div className="flex items-center justify-between border-b px-4 md:px-6 py-3">
           <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 md:hidden shrink-0"
+              onClick={() => setChatSidebarOpen(true)}
+            >
+              <PanelLeft size={16} />
+            </Button>
             <Sparkles size={18} className="text-primary" />
             <h2 className="font-semibold">Knowledge Assistant</h2>
           </div>
