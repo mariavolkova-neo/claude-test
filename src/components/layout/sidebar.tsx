@@ -14,11 +14,13 @@ import {
   HelpCircle,
   LogOut,
   Globe,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tooltip } from "@/components/ui/tooltip";
 import { Avatar } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import { useAssistantStore } from "@/stores/assistant-store";
 
 interface NavItem {
   icon: React.ReactNode;
@@ -42,6 +44,7 @@ const bottomNav: NavItem[] = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { isOpen, toggle } = useAssistantStore();
 
   return (
     <aside className="fixed left-0 top-0 z-40 flex h-screen w-[60px] flex-col items-center border-r bg-card py-4">
@@ -66,6 +69,21 @@ export function Sidebar() {
           );
         })}
       </nav>
+
+      {/* Assistant toggle */}
+      <Tooltip content="Assistant" side="right">
+        <button
+          onClick={toggle}
+          className={cn(
+            "flex h-10 w-10 items-center justify-center rounded-lg transition-colors mb-2",
+            isOpen
+              ? "bg-primary/10 text-primary"
+              : "text-muted-foreground hover:bg-accent hover:text-foreground"
+          )}
+        >
+          <Sparkles size={20} />
+        </button>
+      </Tooltip>
 
       {/* Bottom navigation */}
       <div className="flex flex-col items-center gap-1">
