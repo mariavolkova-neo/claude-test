@@ -13,20 +13,20 @@ import {
   HelpCircle,
   LogOut,
   Globe,
+  X,
   PanelLeft,
   PanelRight,
-  ChevronRight,
-  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import { Tooltip } from "@/components/ui/tooltip";
 import { Avatar } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import { useAssistantStore } from "@/stores/assistant-store";
 
 interface NavItem {
   icon: React.ReactNode;
@@ -39,7 +39,6 @@ const mainNav: NavItem[] = [
   { icon: <ClipboardList size={20} />, label: "Tasks", href: "/tasks" },
   { icon: <BookOpen size={20} />, label: "Knowledge Center", href: "/knowledge" },
   { icon: <Building2 size={20} />, label: "Admin", href: "/admin" },
-  { icon: <Sparkles size={20} />, label: "Assistant", href: "/assistant" },
 ];
 
 const supportNav: NavItem[] = [
@@ -47,7 +46,7 @@ const supportNav: NavItem[] = [
   { icon: <HelpCircle size={20} />, label: "Help Center", href: "/help" },
 ];
 
-interface SidebarProps {
+export interface SidebarProps {
   expanded: boolean;
   onToggle: () => void;
   mobileOpen: boolean;
@@ -105,17 +104,10 @@ function SidebarContent({
   onMobileClose: () => void;
 }) {
   const pathname = usePathname();
-  const showLabels = expanded || isMobile;
+  const { isOpen, toggle } = useAssistantStore();
 
-  function isActive(href: string) {
-    if (href === "/admin") {
-      return pathname === "/admin" || (pathname.startsWith("/admin/") && !mainNav.some(
-        (n) => n.href !== "/admin" && pathname.startsWith(n.href)
-      ));
-    }
-    return pathname.startsWith(href);
-  }
-
+  const showLabels = expanded;
+  const isActive = (href: string) => pathname.startsWith(href);
   const handleNavClick = isMobile ? onMobileClose : undefined;
 
   return (
@@ -174,48 +166,53 @@ function SidebarContent({
         </div>
       </nav>
 
-      {/* Support navigation */}
-      <div className="px-2 pb-4">
-        {showLabels && (
-          <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-            Support
-          </p>
-        )}
-        <div className="flex flex-col gap-1">
-          {supportNav.map((item) => (
-            <NavLink
-              key={item.href}
-              item={item}
-              expanded={showLabels}
-              isActive={isActive(item.href)}
-              onClick={handleNavClick}
-            />
-          ))}
-        </div>
+      {/* Assistant toggle */}
+      <div className={cn("px-2 mb-2", showLabels ? "" : "flex justify-center")}>
+        <Tooltip content="Assistant" side="right">
+          <button
+            onClick={toggle}
+            className={cn(
+              "flex items-center gap-3 rounded-lg transition-colors",
+              showLabels ? "w-full px-3 py-2" : "h-10 w-10 justify-center",
+              isOpen
+                ? "bg-primary/10 text-primary"
+                : "text-muted-foreground hover:bg-accent hover:text-foreground"
+            )}
+          >
+            <Sparkles size={20} />
+            {showLabels && (
+              <span className="text-sm font-medium">Assistant</span>
+            )}
+          </button>
+        </Tooltip>
       </div>
 
-      {/* User section */}
-      <div className="border-t px-2 py-3">
+      {/* Support navigation + User menu */}
+      <div className={cn("border-t px-2 py-3", showLabels ? "" : "flex flex-col items-center gap-1")}>
+        {supportNav.map((item) => (
+          <NavLink
+            key={item.href}
+            item={item}
+            expanded={showLabels}
+            isActive={isActive(item.href)}
+            onClick={handleNavClick}
+          />
+        ))}
+
+        {/* User menu */}
         {showLabels ? (
           <DropdownMenu
             align="start"
             trigger={
-              <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors hover:bg-accent cursor-pointer">
+              <div className="flex items-center gap-3 rounded-lg px-3 py-2 mt-1 cursor-pointer hover:bg-accent transition-colors">
                 <Avatar fallback="MV" size="sm" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">Maria Volkova</p>
-                  <p className="text-xs text-muted-foreground truncate">
-                    Premium Plan
-                  </p>
+                  <p className="text-xs text-muted-foreground truncate">maria@example.com</p>
                 </div>
-                <ChevronRight size={16} className="shrink-0 text-muted-foreground" />
-              </button>
+              </div>
             }
           >
-            <div className="px-3 py-2">
-              <p className="text-sm font-medium">Maria Volkova</p>
-              <p className="text-xs text-muted-foreground">maria@example.com</p>
-            </div>
             <DropdownMenuSeparator />
             <DropdownMenuItem>
               <Globe size={16} />
@@ -231,7 +228,7 @@ function SidebarContent({
           <DropdownMenu
             align="start"
             trigger={
-              <div className="flex justify-center">
+              <div className="flex justify-center mt-2 cursor-pointer">
                 <Avatar fallback="MV" size="sm" />
               </div>
             }
