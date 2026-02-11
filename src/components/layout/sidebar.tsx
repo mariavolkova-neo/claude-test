@@ -13,12 +13,19 @@ import {
   HelpCircle,
   LogOut,
   Globe,
-  Sparkles,
+  X,
+  PanelLeft,
+  PanelRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import { Tooltip } from "@/components/ui/tooltip";
 import { Avatar } from "@/components/ui/avatar";
-import { DropdownMenu, DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import { useAssistantStore } from "@/stores/assistant-store";
 
 interface NavItem {
@@ -32,7 +39,6 @@ const mainNav: NavItem[] = [
   { icon: <ClipboardList size={20} />, label: "Tasks", href: "/tasks" },
   { icon: <BookOpen size={20} />, label: "Knowledge Center", href: "/knowledge" },
   { icon: <Building2 size={20} />, label: "Admin", href: "/admin" },
-  { icon: <Sparkles size={20} />, label: "Assistant", href: "/assistant" },
 ];
 
 const supportNav: NavItem[] = [
@@ -40,7 +46,7 @@ const supportNav: NavItem[] = [
   { icon: <HelpCircle size={20} />, label: "Help Center", href: "/help" },
 ];
 
-interface SidebarProps {
+export interface SidebarProps {
   expanded: boolean;
   onToggle: () => void;
   mobileOpen: boolean;
@@ -100,6 +106,10 @@ function SidebarContent({
   const pathname = usePathname();
   const { isOpen, toggle } = useAssistantStore();
 
+  const showLabels = expanded;
+  const isActive = (href: string) => pathname.startsWith(href);
+  const handleNavClick = isMobile ? onMobileClose : undefined;
+
   return (
     <>
       {/* Brand + Toggle */}
@@ -157,40 +167,52 @@ function SidebarContent({
       </nav>
 
       {/* Assistant toggle */}
-      <Tooltip content="Assistant" side="right">
-        <button
-          onClick={toggle}
-          className={cn(
-            "flex h-10 w-10 items-center justify-center rounded-lg transition-colors mb-2",
-            isOpen
-              ? "bg-primary/10 text-primary"
-              : "text-muted-foreground hover:bg-accent hover:text-foreground"
-          )}
-        >
-          <Sparkles size={20} />
-        </button>
-      </Tooltip>
+      <div className={cn("px-2 mb-2", showLabels ? "" : "flex justify-center")}>
+        <Tooltip content="Assistant" side="right">
+          <button
+            onClick={toggle}
+            className={cn(
+              "flex items-center gap-3 rounded-lg transition-colors",
+              showLabels ? "w-full px-3 py-2" : "h-10 w-10 justify-center",
+              isOpen
+                ? "bg-primary/10 text-primary"
+                : "text-muted-foreground hover:bg-accent hover:text-foreground"
+            )}
+          >
+            <Sparkles size={20} />
+            {showLabels && (
+              <span className="text-sm font-medium">Assistant</span>
+            )}
+          </button>
+        </Tooltip>
+      </div>
 
-      {/* Bottom navigation */}
-      <div className="flex flex-col items-center gap-1">
-        {bottomNav.map((item) => (
-          <Tooltip key={item.label} content={item.label} side="right">
-            <Link
-              href={item.href}
-              className="flex h-10 w-10 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-            >
-              {item.icon}
-            </Link>
-          </Tooltip>
+      {/* Support navigation + User menu */}
+      <div className={cn("border-t px-2 py-3", showLabels ? "" : "flex flex-col items-center gap-1")}>
+        {supportNav.map((item) => (
+          <NavLink
+            key={item.href}
+            item={item}
+            expanded={showLabels}
+            isActive={isActive(item.href)}
+            onClick={handleNavClick}
+          />
         ))}
 
         {/* User menu */}
-        <DropdownMenu
-          align="start"
-          trigger={
-            <div className="mt-2">
-              <Avatar fallback="MV" size="sm" />
-            </div>
+        {showLabels ? (
+          <DropdownMenu
+            align="start"
+            trigger={
+              <div className="flex items-center gap-3 rounded-lg px-3 py-2 mt-1 cursor-pointer hover:bg-accent transition-colors">
+                <Avatar fallback="MV" size="sm" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">Maria Volkova</p>
+                  <p className="text-xs text-muted-foreground truncate">maria@example.com</p>
+                </div>
+              </div>
+            }
+          >
             <DropdownMenuSeparator />
             <DropdownMenuItem>
               <Globe size={16} />
@@ -206,7 +228,7 @@ function SidebarContent({
           <DropdownMenu
             align="start"
             trigger={
-              <div className="flex justify-center">
+              <div className="flex justify-center mt-2 cursor-pointer">
                 <Avatar fallback="MV" size="sm" />
               </div>
             }
