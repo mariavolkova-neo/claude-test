@@ -1,19 +1,25 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   Info,
   Plus,
   ChevronDown,
+  ChevronRight,
   MoreHorizontal,
   ArrowUpDown,
   Tag,
   LayoutGrid,
   List,
   FolderOpen,
+  Home,
+  PanelLeftClose,
+  PanelLeft,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { FolderTree } from "@/components/knowledge/folder-tree";
+import type { FolderNode } from "@/components/knowledge/folder-tree";
 import { AssetCard } from "@/components/knowledge/asset-card";
 import {
   DropdownMenu,
@@ -21,13 +27,53 @@ import {
 } from "@/components/ui/dropdown-menu";
 import type { Asset } from "@/types/knowledge";
 
-const mockAssets: Asset[] = [
+// ---------------------------------------------------------------------------
+// Mock data – single source of truth
+// ---------------------------------------------------------------------------
+
+const folderTree: FolderNode[] = [
   {
     id: "1",
+    name: "Sales",
+    children: [
+      { id: "1-1", name: "Case Studies" },
+      { id: "1-2", name: "Proposals" },
+    ],
+  },
+  {
+    id: "2",
+    name: "Engineering",
+    children: [
+      { id: "2-1", name: "Standards" },
+      { id: "2-2", name: "Procedures" },
+    ],
+  },
+  {
+    id: "3",
+    name: "Compliance",
+    children: [
+      { id: "3-1", name: "Risk Awareness" },
+      { id: "3-2", name: "Safety Protocols" },
+    ],
+  },
+  {
+    id: "4",
+    name: "Training",
+    children: [
+      { id: "4-1", name: "Onboarding" },
+      { id: "4-2", name: "Certifications" },
+    ],
+  },
+];
+
+const mockAssets: Asset[] = [
+  {
+    id: "a1",
     name: "Introduction to Nuclear Safety Standards",
     description:
       "Comprehensive overview of nuclear safety protocols and international standards compliance requirements.",
     type: "flexdoc",
+    folderId: "3-2",
     tags: ["Safety", "Compliance"],
     progress: 65,
     createdAt: "2024-01-15",
@@ -35,22 +81,24 @@ const mockAssets: Asset[] = [
     createdBy: "admin",
   },
   {
-    id: "2",
+    id: "a2",
     name: "Reactor Design Fundamentals",
     description:
       "Core principles of reactor design including thermal hydraulics and neutronics.",
     type: "upload",
+    folderId: "2-1",
     tags: ["Engineering", "Design"],
     createdAt: "2024-02-01",
     updatedAt: "2024-02-15",
     createdBy: "admin",
   },
   {
-    id: "3",
+    id: "a3",
     name: "Environmental Impact Assessment Guide",
     description:
       "Step-by-step guide for conducting environmental impact assessments for nuclear facilities.",
     type: "google",
+    folderId: "3",
     tags: ["Environment", "Compliance"],
     progress: 30,
     createdAt: "2024-02-10",
@@ -58,22 +106,24 @@ const mockAssets: Asset[] = [
     createdBy: "admin",
   },
   {
-    id: "4",
+    id: "a4",
     name: "Radiation Protection Handbook",
     description:
       "Essential radiation protection measures, dosimetry, and ALARA principles.",
     type: "upload",
+    folderId: "2-2",
     tags: ["Safety", "Health"],
     createdAt: "2024-03-01",
     updatedAt: "2024-03-10",
     createdBy: "admin",
   },
   {
-    id: "5",
+    id: "a5",
     name: "Quality Assurance Program Manual",
     description:
       "Organization-wide QA program documentation including audit procedures.",
     type: "onedrive",
+    folderId: "1-1",
     tags: ["Quality", "Management"],
     progress: 100,
     createdAt: "2024-03-15",
@@ -81,25 +131,147 @@ const mockAssets: Asset[] = [
     createdBy: "admin",
   },
   {
-    id: "6",
+    id: "a6",
     name: "Emergency Response Procedures",
     description:
       "Emergency preparedness and response procedures for various incident scenarios.",
     type: "flexdoc",
+    folderId: "4-1",
     tags: ["Safety", "Emergency"],
     createdAt: "2024-04-01",
     updatedAt: "2024-04-10",
     createdBy: "admin",
   },
+  {
+    id: "a7",
+    name: "Client Pitch Deck – Q1 2024",
+    description: "Quarterly pitch deck for prospective engineering clients.",
+    type: "google",
+    folderId: "1-2",
+    tags: ["Sales", "Presentation"],
+    createdAt: "2024-01-20",
+    updatedAt: "2024-02-05",
+    createdBy: "admin",
+  },
+  {
+    id: "a8",
+    name: "Risk Assessment Methodology",
+    description:
+      "Standard methodology for performing risk assessments across facility operations.",
+    type: "flexdoc",
+    folderId: "3-1",
+    tags: ["Risk", "Compliance"],
+    progress: 80,
+    createdAt: "2024-02-20",
+    updatedAt: "2024-03-15",
+    createdBy: "admin",
+  },
+  {
+    id: "a9",
+    name: "New Hire Training Schedule",
+    description: "Week-by-week training plan for new engineering hires.",
+    type: "upload",
+    folderId: "4-1",
+    tags: ["Training", "Onboarding"],
+    createdAt: "2024-03-05",
+    updatedAt: "2024-03-20",
+    createdBy: "admin",
+  },
+  {
+    id: "a10",
+    name: "Professional Certification Guide",
+    description:
+      "Overview of required professional certifications and renewal processes.",
+    type: "flexdoc",
+    folderId: "4-2",
+    tags: ["Training", "Certifications"],
+    progress: 45,
+    createdAt: "2024-04-10",
+    updatedAt: "2024-04-20",
+    createdBy: "admin",
+  },
 ];
 
-const mockFolders = [
-  { id: "f1", name: "Case Studies" },
-  { id: "f2", name: "Risk Awareness" },
-];
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+interface FlatFolder {
+  id: string;
+  name: string;
+  parentId: string | null;
+  children: FolderNode[];
+}
+
+/** Build a flat map from the tree so we can look up any folder by id. */
+function buildFolderMap(
+  nodes: FolderNode[],
+  parentId: string | null = null
+): Map<string, FlatFolder> {
+  const map = new Map<string, FlatFolder>();
+  for (const node of nodes) {
+    map.set(node.id, {
+      id: node.id,
+      name: node.name,
+      parentId,
+      children: node.children ?? [],
+    });
+    if (node.children) {
+      for (const [k, v] of buildFolderMap(node.children, node.id)) {
+        map.set(k, v);
+      }
+    }
+  }
+  return map;
+}
+
+/** Walk up from a folder to root, returning the breadcrumb path. */
+function getBreadcrumbPath(
+  folderMap: Map<string, FlatFolder>,
+  folderId: string | null
+): { id: string | null; name: string }[] {
+  const trail: { id: string | null; name: string }[] = [];
+  let current = folderId;
+  while (current) {
+    const folder = folderMap.get(current);
+    if (!folder) break;
+    trail.unshift({ id: folder.id, name: folder.name });
+    current = folder.parentId;
+  }
+  return [{ id: null, name: "Knowledge Center" }, ...trail];
+}
+
+// ---------------------------------------------------------------------------
+// Page
+// ---------------------------------------------------------------------------
 
 export default function KnowledgeCenterPage() {
-  const [selectedFolder, setSelectedFolder] = useState<string | null>("1");
+  const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
+  const [folderSidebarOpen, setFolderSidebarOpen] = useState(false);
+
+  const folderMap = useMemo(() => buildFolderMap(folderTree), []);
+
+  const breadcrumbs = useMemo(
+    () => getBreadcrumbPath(folderMap, selectedFolderId),
+    [folderMap, selectedFolderId]
+  );
+
+  // Subfolders of the currently selected folder
+  const subfolders = useMemo(() => {
+    if (!selectedFolderId) return folderTree;
+    const folder = folderMap.get(selectedFolderId);
+    return folder?.children ?? [];
+  }, [folderMap, selectedFolderId]);
+
+  // Assets that belong to the current folder
+  const visibleAssets = useMemo(() => {
+    if (!selectedFolderId) return mockAssets;
+    return mockAssets.filter((a) => a.folderId === selectedFolderId);
+  }, [selectedFolderId]);
+
+  const currentName = selectedFolderId
+    ? (folderMap.get(selectedFolderId)?.name ?? "Knowledge Center")
+    : "Knowledge Center";
 
   return (
     <div>
@@ -111,11 +283,39 @@ export default function KnowledgeCenterPage() {
       {/* Breadcrumb + Title */}
       <div className="border-b bg-card px-6 py-4">
         <div className="mx-auto max-w-7xl">
-          <p className="text-xs text-muted-foreground">
-            Knowledge Center / PMI Delta Engineering / Introduction to Nuclear
-          </p>
+          {/* Breadcrumbs */}
+          <nav className="flex items-center gap-1 text-xs text-muted-foreground">
+            {breadcrumbs.map((crumb, i) => {
+              const isLast = i === breadcrumbs.length - 1;
+              return (
+                <React.Fragment key={crumb.id ?? "root"}>
+                  {i > 0 && <ChevronRight size={12} className="shrink-0" />}
+                  {isLast ? (
+                    <span className="font-medium text-foreground">
+                      {crumb.name}
+                    </span>
+                  ) : (
+                    <button
+                      onClick={() => setSelectedFolderId(crumb.id)}
+                      className="hover:text-foreground transition-colors cursor-pointer"
+                    >
+                      {i === 0 ? (
+                        <span className="flex items-center gap-1">
+                          <Home size={12} />
+                          {crumb.name}
+                        </span>
+                      ) : (
+                        crumb.name
+                      )}
+                    </button>
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </nav>
+
           <div className="mt-2 flex items-center justify-between">
-            <h1 className="text-xl font-semibold">Introduction to Nuclear</h1>
+            <h1 className="text-xl font-semibold">{currentName}</h1>
             <div className="flex items-center gap-2">
               <Button variant="ghost" size="icon">
                 <Info size={18} />
@@ -144,55 +344,96 @@ export default function KnowledgeCenterPage() {
       </div>
 
       {/* Main Content */}
-      <div className="mx-auto max-w-7xl flex gap-0">
-        {/* Folder Sidebar */}
-        <aside className="w-56 shrink-0 border-r p-4">
+      <div className="mx-auto max-w-7xl flex gap-0 relative">
+        {/* Mobile folder sidebar backdrop */}
+        {folderSidebarOpen && (
+          <div
+            className="fixed inset-0 z-20 bg-black/50 md:hidden"
+            onClick={() => setFolderSidebarOpen(false)}
+          />
+        )}
+
+        {/* Folder Sidebar — always visible on md+, drawer on mobile */}
+        <aside
+          className={cn(
+            "fixed md:relative z-30 md:z-auto top-0 left-0 h-full md:h-auto w-64 md:w-56 shrink-0 border-r bg-card md:bg-transparent p-4 transition-transform duration-300 md:translate-x-0",
+            folderSidebarOpen ? "translate-x-0 shadow-xl" : "-translate-x-full"
+          )}
+        >
+          <div className="flex items-center justify-between mb-3 md:hidden">
+            <p className="text-sm font-semibold">Folders</p>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              onClick={() => setFolderSidebarOpen(false)}
+            >
+              <PanelLeftClose size={16} />
+            </Button>
+          </div>
           <FolderTree
-            selectedId={selectedFolder}
-            onSelect={setSelectedFolder}
+            folders={folderTree}
+            selectedId={selectedFolderId}
+            onSelect={(id) => {
+              setSelectedFolderId(id);
+              setFolderSidebarOpen(false);
+            }}
           />
         </aside>
 
         {/* Content Area */}
-        <div className="flex-1 p-6">
+        <div className="flex-1 p-4 md:p-6">
+          {/* Mobile folder toggle */}
+          <Button
+            variant="outline"
+            size="sm"
+            className="mb-4 md:hidden"
+            onClick={() => setFolderSidebarOpen(true)}
+          >
+            <PanelLeft size={14} />
+            Folders
+          </Button>
           {/* Folders Section */}
-          <section>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-                Folders
-              </h2>
-              <div className="flex items-center gap-1">
-                <Button variant="ghost" size="icon" className="h-7 w-7">
-                  <ArrowUpDown size={14} />
-                </Button>
-                <Button variant="ghost" size="icon" className="h-7 w-7">
-                  <Tag size={14} />
-                </Button>
-                <Button variant="ghost" size="icon" className="h-7 w-7">
-                  <LayoutGrid size={14} />
-                </Button>
+          {subfolders.length > 0 && (
+            <section>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+                  Folders
+                </h2>
+                <div className="flex items-center gap-1">
+                  <Button variant="ghost" size="icon" className="h-7 w-7">
+                    <ArrowUpDown size={14} />
+                  </Button>
+                  <Button variant="ghost" size="icon" className="h-7 w-7">
+                    <Tag size={14} />
+                  </Button>
+                  <Button variant="ghost" size="icon" className="h-7 w-7">
+                    <LayoutGrid size={14} />
+                  </Button>
+                </div>
               </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-              {mockFolders.map((folder) => (
-                <button
-                  key={folder.id}
-                  className="flex items-center gap-3 rounded-xl border bg-card p-4 transition-all hover:border-primary/20 hover:shadow-md text-left cursor-pointer"
-                >
-                  <FolderOpen
-                    size={20}
-                    className="shrink-0 text-primary"
-                  />
-                  <span className="text-sm font-medium truncate">
-                    {folder.name}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </section>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+                {subfolders.map((folder) => (
+                  <button
+                    key={folder.id}
+                    onClick={() => setSelectedFolderId(folder.id)}
+                    className="flex items-center gap-3 rounded-xl border bg-card p-4 transition-all hover:border-primary/20 hover:shadow-md text-left cursor-pointer"
+                  >
+                    <FolderOpen
+                      size={20}
+                      className="shrink-0 text-primary"
+                    />
+                    <span className="text-sm font-medium truncate">
+                      {folder.name}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </section>
+          )}
 
           {/* Items Section */}
-          <section className="mt-8">
+          <section className={subfolders.length > 0 ? "mt-8" : ""}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                 Items
@@ -212,11 +453,23 @@ export default function KnowledgeCenterPage() {
                 </Button>
               </div>
             </div>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {mockAssets.map((asset) => (
-                <AssetCard key={asset.id} asset={asset} />
-              ))}
-            </div>
+            {visibleAssets.length > 0 ? (
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {visibleAssets.map((asset) => (
+                  <AssetCard key={asset.id} asset={asset} />
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-16 text-center">
+                <FolderOpen
+                  size={48}
+                  className="text-muted-foreground/30 mb-4"
+                />
+                <p className="text-muted-foreground">
+                  No items in this folder
+                </p>
+              </div>
+            )}
           </section>
         </div>
       </div>

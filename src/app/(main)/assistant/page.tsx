@@ -4,6 +4,7 @@ import React from "react";
 import {
   Sparkles,
   PanelRight,
+  PanelLeft,
   Maximize2,
   MessageSquare,
   MoreHorizontal,
