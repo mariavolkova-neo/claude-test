@@ -25,21 +25,6 @@ export default function MainLayout({
   const panelOffset = isOpen && displayMode === "panel" ? panelWidth : 0;
   const sidebarWidth = sidebarExpanded ? 220 : 60;
 
-  if (isKnowledgeCenter) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Topbar />
-        <main
-          style={{ marginRight: panelOffset }}
-          className="transition-[margin] duration-200"
-        >
-          {children}
-        </main>
-        <AssistantPanel />
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-background">
       <Sidebar
@@ -49,24 +34,39 @@ export default function MainLayout({
         onMobileClose={() => setMobileOpen(false)}
       />
 
-      {/* Mobile header with menu toggle */}
-      <div className="sticky top-0 z-30 flex h-14 items-center border-b bg-card px-4 md:hidden">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-9 w-9"
-          onClick={() => setMobileOpen(true)}
-        >
-          <Menu size={20} />
-        </Button>
-      </div>
+      {isKnowledgeCenter ? (
+        <>
+          <Topbar onMenuToggle={() => setMobileOpen(true)} />
+          <main
+            className="transition-[margin] duration-200"
+            style={{ marginLeft: sidebarWidth, marginRight: panelOffset }}
+          >
+            {children}
+          </main>
+        </>
+      ) : (
+        <>
+          {/* Mobile header with menu toggle */}
+          <div className="sticky top-0 z-30 flex h-14 items-center border-b bg-card px-4 md:hidden">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9"
+              onClick={() => setMobileOpen(true)}
+            >
+              <Menu size={20} />
+            </Button>
+          </div>
 
-      <main
-        className="transition-[margin] duration-300"
-        style={{ marginLeft: sidebarWidth, marginRight: panelOffset }}
-      >
-        <div className="mx-auto max-w-6xl p-6">{children}</div>
-      </main>
+          <main
+            className="transition-[margin] duration-300"
+            style={{ marginLeft: sidebarWidth, marginRight: panelOffset }}
+          >
+            <div className="mx-auto max-w-6xl p-6">{children}</div>
+          </main>
+        </>
+      )}
+
       <AssistantPanel />
     </div>
   );
