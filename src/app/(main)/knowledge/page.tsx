@@ -20,6 +20,8 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import type { Asset } from "@/types/knowledge";
+import type { User } from "@/types/admin";
+import type { AssignTaskPayload } from "@/types/tasks";
 
 const mockAssets: Asset[] = [
   {
@@ -98,8 +100,90 @@ const mockFolders = [
   { id: "f2", name: "Risk Awareness" },
 ];
 
+const mockUsers: User[] = [
+  {
+    id: "1",
+    firstName: "Tamar",
+    lastName: "Lomidze",
+    displayName: "Tamar Lomidze",
+    email: "tamar@example.com",
+    title: "Senior Engineer",
+    status: "active",
+    role: "admin",
+    division: "Engineering",
+    preferredLanguages: [],
+    contentLicenses: [],
+    tags: [],
+    createdAt: "2024-01-15",
+  },
+  {
+    id: "2",
+    firstName: "Alex",
+    lastName: "Chen",
+    displayName: "Alex Chen",
+    email: "alex@example.com",
+    title: "Product Manager",
+    status: "active",
+    role: "manager",
+    division: "Product",
+    preferredLanguages: [],
+    contentLicenses: [],
+    tags: [],
+    createdAt: "2024-02-01",
+  },
+  {
+    id: "3",
+    firstName: "Sarah",
+    lastName: "Johnson",
+    displayName: "Sarah Johnson",
+    email: "sarah@example.com",
+    title: "Designer",
+    status: "active",
+    role: "member",
+    division: "Design",
+    preferredLanguages: [],
+    contentLicenses: [],
+    tags: [],
+    createdAt: "2024-02-15",
+  },
+  {
+    id: "4",
+    firstName: "Marcus",
+    lastName: "Rivera",
+    displayName: "Marcus Rivera",
+    email: "marcus@example.com",
+    title: "QA Lead",
+    status: "active",
+    role: "member",
+    division: "Engineering",
+    preferredLanguages: [],
+    contentLicenses: [],
+    tags: [],
+    createdAt: "2024-03-01",
+  },
+  {
+    id: "5",
+    firstName: "Emma",
+    lastName: "Williams",
+    displayName: "Emma Williams",
+    email: "emma@example.com",
+    title: "Content Strategist",
+    status: "active",
+    role: "member",
+    division: "Marketing",
+    preferredLanguages: [],
+    contentLicenses: [],
+    tags: [],
+    createdAt: "2024-04-01",
+  },
+];
+
 export default function KnowledgeCenterPage() {
   const [selectedFolder, setSelectedFolder] = useState<string | null>("1");
+
+  function handleAssignTask(payload: AssignTaskPayload) {
+    console.log("Assign task:", payload);
+  }
 
   return (
     <div>
@@ -214,7 +298,12 @@ export default function KnowledgeCenterPage() {
             </div>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {mockAssets.map((asset) => (
-                <AssetCard key={asset.id} asset={asset} />
+                <AssetCard
+                  key={asset.id}
+                  asset={asset}
+                  users={mockUsers}
+                  onAssignTask={handleAssignTask}
+                />
               ))}
             </div>
           </section>
