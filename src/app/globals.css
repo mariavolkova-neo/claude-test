@@ -91,7 +91,7 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
-  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-sans: "Plus Jakarta Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
 }
 
@@ -103,4 +103,34 @@ body {
 
 * {
   border-color: var(--border);
+}
+
+/* ---- Assistant panel / overlay ---- */
+
+.assistant-panel {
+  animation: assistant-slide-in 200ms ease-out;
+}
+
+.assistant-modal {
+  animation: assistant-fade-in 150ms ease-out;
+}
+
+@keyframes assistant-slide-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes assistant-fade-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
