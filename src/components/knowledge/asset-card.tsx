@@ -35,11 +35,12 @@ const typeColors: Record<string, string> = {
 
 interface AssetCardProps {
   asset: Asset;
+  allAssets?: Asset[];
   users?: User[];
   onAssignTask?: (payload: AssignTaskPayload) => void;
 }
 
-export function AssetCard({ asset, users, onAssignTask }: AssetCardProps) {
+export function AssetCard({ asset, allAssets, users, onAssignTask }: AssetCardProps) {
   const [assignModalOpen, setAssignModalOpen] = useState(false);
 
   return (
@@ -132,7 +133,8 @@ export function AssetCard({ asset, users, onAssignTask }: AssetCardProps) {
         <AssignTaskModal
           open={assignModalOpen}
           onOpenChange={setAssignModalOpen}
-          asset={asset}
+          initialAsset={asset}
+          allAssets={allAssets ?? []}
           users={users}
           onSubmit={onAssignTask}
         />

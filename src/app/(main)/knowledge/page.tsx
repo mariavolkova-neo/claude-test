@@ -542,6 +542,7 @@ export default function KnowledgeCenterPage() {
                 <AssetCard
                   key={asset.id}
                   asset={asset}
+                  allAssets={mockAssets}
                   users={mockUsers}
                   onAssignTask={handleAssignTask}
                 />
